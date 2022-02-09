@@ -12,13 +12,14 @@ const Dashboard = () => {
     // const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(false);
     const [isEdit, setIsEdit] = useState(false);
+    const [page, setPage] = useState(1);
     const columns = [
         {
             title: 'ID',
             dataIndex: 'id',
             key: 'id',
             render: (data, record, index) => (
-                <span key={index}>{index + 1}</span>
+                <span key={index}>{(page - 1) * 10 + index +1}</span>
             ),
         },
         {
@@ -47,13 +48,14 @@ const Dashboard = () => {
             title: 'Email',
             dataIndex: 'email',
             key: 'email',
+            responsive: ['sm'],
         },
         {
             title: 'Action',
             dataIndex: 'action',
             key: 'action',
             render: (data, record, index) => (
-                <div key={index}>
+                <div key={index} className='flex flex-col sm:flex-row'>
                     <Link
                         key={1}
                         to={'#'}
@@ -94,8 +96,12 @@ const Dashboard = () => {
     const getUsers = async () => {
         setLoading(true);
         try {
-            const res = await axios.get('https://reqres.in/api/users');
-            dispatch(setUsers(res?.data.data || []));
+            const userlist1 = await axios.get('https://reqres.in/api/users');
+            const userlist2 = await axios.get(
+                'https://reqres.in/api/users?page=2'
+            );
+            let userlist = [...userlist1?.data.data, ...userlist2?.data.data];
+            dispatch(setUsers(userlist || []));
             setLoading(false);
         } catch (error) {
             setLoading(false);
@@ -117,7 +123,12 @@ const Dashboard = () => {
             />
             <Spin spinning={loading}>
                 <div className='w-full sm:w-11/12 mx-auto'>
-                    <Table columns={columns} dataSource={users} rowKey='id' />
+                    <Table columns={columns} dataSource={users} rowKey='id'
+    pagination={{
+      onChange(current) {
+        setPage(current);
+      }
+    }} />
                 </div>
             </Spin>
         </LayOut>
